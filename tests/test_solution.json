@@ -1,0 +1,101 @@
+{
+  "code": 0,
+  "summary": {
+    "cost": 2158,
+    "routes": 1,
+    "unassigned": 0,
+    "setup": 0,
+    "service": 0,
+    "duration": 2158,
+    "waiting_time": 0,
+    "priority": 0,
+    "violations": [],
+    "computing_times": {
+      "loading": 0,
+      "solving": 0
+    }
+  },
+  "unassigned": [],
+  "routes": [
+    {
+      "vehicle": 48,
+      "cost": 2158,
+      "setup": 0,
+      "service": 0,
+      "duration": 2158,
+      "waiting_time": 0,
+      "priority": 0,
+      "steps": [
+        {
+          "type": "start",
+          "location_index": 2,
+          "setup": 0,
+          "service": 0,
+          "waiting_time": 0,
+          "arrival": 0,
+          "duration": 0,
+          "violations": []
+        },
+        {
+          "type": "job",
+          "location_index": 1,
+          "id": 2,
+          "setup": 0,
+          "service": 0,
+          "waiting_time": 0,
+          "job": 2,
+          "arrival": 453,
+          "duration": 453,
+          "violations": []
+        },
+        {
+          "type": "job",
+          "location_index": 0,
+          "id": 1,
+          "setup": 0,
+          "service": 0,
+          "waiting_time": 0,
+          "job": 1,
+          "arrival": 806,
+          "duration": 806,
+          "violations": []
+        },
+        {
+          "type": "job",
+          "location_index": 3,
+          "id": 4,
+          "setup": 0,
+          "service": 0,
+          "waiting_time": 0,
+          "job": 4,
+          "arrival": 1247,
+          "duration": 1247,
+          "violations": []
+        },
+        {
+          "type": "job",
+          "location_index": 2,
+          "id": 3,
+          "setup": 0,
+          "service": 0,
+          "waiting_time": 0,
+          "job": 3,
+          "arrival": 1913,
+          "duration": 1913,
+          "violations": []
+        },
+        {
+          "type": "end",
+          "location_index": 2,
+          "setup": 0,
+          "service": 0,
+          "waiting_time": 0,
+          "arrival": 2158,
+          "duration": 2158,
+          "violations": []
+        }
+      ],
+      "violations": []
+    }
+  ]
+}
