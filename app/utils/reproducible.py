@@ -26,7 +26,7 @@ class Reproducible(BaseModel):
     seed: Optional[int] = None
 
     @staticmethod
-    def get_rng_seed(*, seed: int = None):
+    def get_rng_seed(seed: int = None):
         if seed is None:
             seed = np.random.default_rng().integers(0, 1e9)
         rng = np.random.default_rng(seed)

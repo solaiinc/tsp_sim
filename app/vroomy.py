@@ -248,7 +248,7 @@ class Route(BaseModel):
                "{steps}".format(
             self=self,
             tw=TimeWindow(start=self.departure_time, end=self.arrival_time),
-            steps="|".join(map(str, [x.id or x.type for x in self.steps])),
+            steps=f'[{"|".join(map(str, [x.id or x.type for x in self.steps]))}]',
             # steps=textwrap.indent("\n".join(map(str, self.steps)), '\t'),
         )
 
@@ -312,7 +312,7 @@ class Solution(BaseModel):
         return '{self.summary}|' \
                'Tasks:{tasks}|' \
                'Span:{self.span}' \
-               '\n{routes}|' \
+               '\n{routes}' \
                '\nUnassigned:{unassigned}'.format(
             self=self,
             tasks=sum([len(x.job_steps) for x in self.routes]),
