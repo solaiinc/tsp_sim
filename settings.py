@@ -1,9 +1,11 @@
 import sys
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from loguru import logger
 from pydantic import field_validator, BaseModel
+from pydantic_core.core_schema import FieldValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,13 +29,23 @@ class Settings(BaseSettings):
     )
 
     project_folder: Path = Path(__file__).resolve().parent
+    data_folder: Optional[Path] = None
 
     # db:DB
 
     @field_validator('project_folder')
-    def check_folder(cls, v):
+    def check_1(cls, v):
         assert v.exists()
         return v
+
+    @field_validator('data_folder')
+    def check_2(cls, v, info: FieldValidationInfo):
+        if v is None:
+            path = info.data['project_folder'] / 'data'
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+        else:
+            return v
 
 
 settings = Settings()
