@@ -10,6 +10,8 @@ from box import Box
 from loguru import logger
 from pydantic import BaseModel as BaseModel_, Field, ConfigDict
 
+from app.utils.typing import Array
+
 
 class BaseModel(BaseModel_):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -22,6 +24,10 @@ class BaseModel(BaseModel_):
 
     def __str__(self):
         return repr(self)
+
+    @property
+    def box(self) -> Box:
+        return Box(self.model_dump(mode='json'))
 
 
 # region Inputs:
@@ -50,7 +56,7 @@ class Job(ShipmentStep):
     priority: int = 0
 
     def __repr__(self):
-        return 'ID:{self.id}|TW:{tw}'.format(self=self, tw=self.time_windows[0])
+        return 'ID:{self.id}|TW:{tw}'.format(self=self, tw=self.time_windows[0] if self.time_windows else None)
 
 
 class Shipment(BaseModel):
@@ -118,13 +124,16 @@ class Vehicle(BaseModel):
     steps: list[VehicleStep] = Field(default_factory=list)
 
     def __repr__(self):
-        return 'ID:{self.id}|Cap:{cap}|TW:{self.time_window}'.format(self=self, cap=self.capacity[0])
+        return 'ID:{self.id}|Cap:{cap}|TW:{self.time_window}'.format(
+            self=self,
+            cap=self.capacity[0] if self.capacity else None,
+        )
 
 
 class Profile(BaseModel):
     name: str = 'car'
-    durations: Optional[np.ndarray] = None
-    costs: Optional[np.ndarray] = None
+    durations: Optional[Array] = None
+    costs: Optional[Array] = None
 
 
 class JobUnassigned(BaseModel):
