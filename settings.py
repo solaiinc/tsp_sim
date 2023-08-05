@@ -1,5 +1,5 @@
+import pathlib
 import sys
-from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -18,6 +18,14 @@ class DB(BaseModel):
 
     def get_url(self, namespace: str = 'postgresql+asyncpg'):
         return f'{namespace}://{self.username}:{self.password}@{self.host}:{self.port}/{self.name}'
+
+
+class Path(type(pathlib.Path())):
+    def __truediv__(self, other):
+        out = super().__truediv__(other)
+        if not (out.suffix or out.is_file()):
+            out.mkdir(exist_ok=True, parents=True)
+        return Path(out)
 
 
 class Settings(BaseSettings):

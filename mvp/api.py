@@ -7,7 +7,7 @@ from pydantic import Field
 from scipy import spatial as sci_sp
 
 from app import vroomy
-from app.utils.common import BaseModel, TrajectoryBase
+from app.utils.common import BaseModel, Persistent
 from app.utils.reproducible import Reproducible
 from app.utils.typing import Array
 from settings import settings
@@ -77,11 +77,12 @@ class Sample(BaseModel):
     action: int
 
 
-class Trajectory(TrajectoryBase):
+class Trajectory(Persistent):
+    name: str
     vroom_input: vroomy.Instance
     solution: vroomy.Solution
     samples: list[Sample] = Field(default_factory=list)
 
     @property
     def path(self):
-        return self.data_folder / f'{self.samples[0].state.id}.json'
+        return self.data_folder / self.name / f'{self.samples[0].state.id}.json'
