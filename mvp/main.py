@@ -1,15 +1,13 @@
-from typing import Iterable
+from loguru import logger
 
-import fire
-import tqdm
-
-from app.utils.reproducible import Reproducible
-from mvp.api import State, Sample, Trajectory
+from mvp.api import State, Trajectory, Sample
 
 
-def generate_expert_trajectory(state: State, name: str) -> Trajectory:
+def main():
+    state = State.create_initial(5, 269)
     vroom_input = state.get_vroom_input()
     solution = vroom_input.solve()
+    logger.debug("solution: {}", solution)
     samples = list()
     for step in solution.routes[0].job_steps:
         job_id = step.id
@@ -17,28 +15,16 @@ def generate_expert_trajectory(state: State, name: str) -> Trajectory:
             state=state.model_copy(deep=True),
             action=job_id,
         ))
-        state.visited.append(job_id)
-        state.action_space.remove(job_id)
-    return Trajectory(
-        vroom_input=vroom_input,
-        solution=solution,
-        samples=samples,
-        name=name,
-    )
+        logger.debug("state: {}", state)
+        logger.debug("job_id: {}", job_id)
+        state.transit(job_id)
 
+    # solution=instance.solve()
+    # logger.debug("instance:\n{}", instance)
+    # instance.box.to_json('qwe.json')
 
-def generate_mvp_dataset(
-        dataset_name: str,
-        seed: int,
-        size: int,
-        num_jobs: Iterable[int],
-
-):
-    rng, seed = Reproducible.get_rng_seed(seed=seed)
-    for _ in tqdm.trange(size):
-        state = State.create_initial(num_jobs=rng.integers(*num_jobs), seed=rng.integers(0, int(1e6)))
-        generate_expert_trajectory(state, name=dataset_name).save()
+    pass
 
 
 if __name__ == '__main__':
-    fire.Fire()
+    main()
