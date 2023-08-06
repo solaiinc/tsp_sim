@@ -45,3 +45,7 @@ class Persistent(BaseModel):
     @property
     def path(self) -> Path:
         raise NotImplementedError()
+
+    @classmethod
+    def get_data_folder(cls) -> Path:
+        return settings.data_folder / cls.get_fullname()
