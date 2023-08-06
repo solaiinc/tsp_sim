@@ -1,6 +1,6 @@
 import textwrap
 from enum import Enum
-from typing import Optional, Any, ClassVar, Iterable
+from typing import Optional, Any, ClassVar, Iterable, Annotated
 
 import more_itertools as mit
 import numpy as np
@@ -8,7 +8,7 @@ import vroom
 from boltons.iterutils import remap
 from box import Box
 from loguru import logger
-from pydantic import BaseModel as BaseModel_, Field, ConfigDict
+from pydantic import BaseModel as BaseModel_, Field, ConfigDict, PlainSerializer, AfterValidator
 
 from app.utils.typing import Array
 
@@ -27,7 +27,7 @@ class BaseModel(BaseModel_):
 
     @property
     def box(self) -> Box:
-        return Box(self.model_dump(mode='json'))
+        return Box(self.model_dump(mode='json', exclude_none=True))
 
 
 # region Inputs:
@@ -44,8 +44,8 @@ class TimeWindow(BaseModel):
 class ShipmentStep(BaseModel):
     id: int
     location: int
-    setup: int = 0
-    service: int = 0
+    setup: int = Field(0, exclude=True)
+    service: int = Field(0, exclude=True)
     time_windows: Optional[list[TimeWindow]] = None
 
 
@@ -53,10 +53,14 @@ class Job(ShipmentStep):
     delivery: Optional[list[int]] = None
     pickup: Optional[list[int]] = None
     skills: Optional[list[int]] = None
-    priority: int = 0
+    priority: int = Field(0, exclude=True)
 
     def __repr__(self):
-        return 'ID:{self.id}|TW:{tw}'.format(self=self, tw=self.time_windows[0] if self.time_windows else None)
+        text = f"ID:{self.id}"
+        if self.time_windows:
+            text += f'|TW:{self.time_windows[0]}'
+        text += f'|Location:{self.location}'
+        return text
 
 
 class Shipment(BaseModel):
@@ -118,16 +122,20 @@ class Vehicle(BaseModel):
     skills: Optional[list[int]] = None
     time_window: Optional[TimeWindow] = None
     breaks: Optional[list[Break]] = None
-    speed_factor: float = 1.0
+    speed_factor: float = Field(1.0, exclude=True)
     max_tasks: Optional[int] = None
     max_travel_time: Optional[int] = None
-    steps: list[VehicleStep] = Field(default_factory=list)
+    steps: list[VehicleStep] = Field(default_factory=list, exclude=True)
 
     def __repr__(self):
-        return 'ID:{self.id}|Cap:{cap}|TW:{self.time_window}'.format(
-            self=self,
-            cap=self.capacity[0] if self.capacity else None,
-        )
+        # text = f'ID:{self.id}'
+        text = ''
+        if self.capacity:
+            text += f'|Cap:{self.capacity}'
+        if self.time_window:
+            text += f'|TW:{self.time_window}'
+        text += f'|StartLocation:{self.start}|EndLocation:{self.end}'
+        return text.strip('|')
 
 
 class Profile(BaseModel):
@@ -308,7 +316,7 @@ class Route(BaseModel):
 
 
 class Solution(BaseModel):
-    code: int
+    code: int = Field(0, exclude=True)
     summary: Summary
     unassigned: list[JobUnassigned]
     routes: list[Route]
@@ -332,11 +340,29 @@ class Solution(BaseModel):
 
 # endregion
 
+JobsT = Annotated[
+    dict[int, Job] | list[Job],
+    PlainSerializer(lambda x: list(x.values()), return_type=list),
+    AfterValidator(lambda vs: {v.id: v for v in vs})
+]
+
+VehiclesT = Annotated[
+    dict[int, Vehicle] | list[Vehicle],
+    PlainSerializer(lambda x: list(x.values()), return_type=list),
+    AfterValidator(lambda vs: {v.id: v for v in vs})
+]
+
+ProfilesT = Annotated[
+    dict[int, Profile] | list[Profile],
+    PlainSerializer(lambda x: list(x.values()), return_type=list),
+    AfterValidator(lambda vs: {v.name: v for v in vs})
+]
+
 
 class Instance(BaseModel):
-    jobs: dict[int, Job] = Field(default_factory=dict)
-    vehicles: dict[int, Vehicle] = Field(default_factory=dict)
-    profiles: dict[str, Profile] = Field(default_factory=dict)
+    jobs: JobsT = Field(default_factory=dict)
+    vehicles: VehiclesT = Field(default_factory=dict)
+    profiles: ProfilesT = Field(default_factory=dict)
 
     # shipments:list[Shipment]=Field(default_factory=list)
     def add(self, objs: Iterable[Job | Vehicle | Profile] | Job | Vehicle | Profile):
@@ -348,8 +374,8 @@ class Instance(BaseModel):
                     self.jobs[obj.id] = obj
                 case Vehicle():
                     self.vehicles[obj.id] = obj
-                case Profile():
-                    self.profiles[obj.name] = obj
+                case Profile() as profile:
+                    self.profiles[profile.name] = profile
                 case _:
                     raise NotImplementedError(obj)
 
@@ -370,11 +396,12 @@ class Instance(BaseModel):
         return Solution(**solution.to_dict())
 
     def __repr__(self):
-        return '\nJobs:\n{jobs}' \
-               '\nVehicles:\n{vehicles}'.format(self=self,
-                                                jobs='\n'.join(map(str, [x for x in self.jobs.values()])),
-                                                vehicles='\n'.join(map(str, [x for x in self.vehicles.values()])),
-                                                )
+        return 'Jobs:\n{jobs}' \
+               '\nVehicles:\n{vehicles}'.format(
+            self=self,
+            jobs='\n'.join(map(str, [x for x in self.jobs.values()])),
+            vehicles='\n'.join(map(str, [x for x in self.vehicles.values()])),
+        )
 
 
 def main():
