@@ -2,6 +2,7 @@ import pathlib
 import sys
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 from pydantic import field_validator, BaseModel
@@ -62,8 +63,7 @@ pd.set_option('max_colwidth', 40)
 # pd.set_option("display.max_rows", None)
 pd.set_option('display.width', None)
 
-# np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-
+np.set_printoptions(threshold=np.inf, linewidth=np.inf)
 
 logger.remove()
 logger.add(sys.stdout, colorize=True, format="{level.icon} <level>{message}</level>")
