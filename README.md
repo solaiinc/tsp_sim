@@ -34,11 +34,11 @@ Type: `python -m mvp.main generate_mvp_dataset --help`
 
 Example: 
 
-`python -m mvp.main generate_mvp_dataset --dataset_name=train --seed=368 --size=10 --num_jobs=[10,20]`
+`python -m mvp.raw_data generate_dataset --dataset_name=train --seed=368 --size=10 --num_jobs=[10,20]`
 
 or plain argument based
 
-`python -m mvp.main generate_mvp_dataset train 368 10 [10,20]`
+`python -m mvp.raw_data generate_dataset train 368 10 [10,20]`
 
 will create the following json dataset:
 
